@@ -1,0 +1,132 @@
+---
+title: "RShiny and Reproducible Pitch"
+author: "Laxmi Paudel"
+date: "12/29/2019"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## R Markdown
+
+The App I created is to generate the random sample and apply the various kind of distribution  and get the Graph.
+
+## Definition Part
+
+- uploaded the shiny package  to create a function in the rmarkdown. It helps to embed the rshiny program into the R-Markdown.
+
+```{r}
+library(shiny)
+```
+
+
+
+## Function of R-shiny to generate the plot in the R markdown.
+- Created a function to R shiny sothat we can get the R-shiny output which we can embed inside the r markdown.
+
+```{r rshiny function, echo = TRUE}
+library(shiny)
+
+#  UI for random distribution app
+random_distribution_alg = function(){
+shinyApp(
+ui <- fluidPage(
+
+  # App title
+
+  titlePanel("Assignment4:  Random Sample Distribution Plots and Summary in Shiny App"),
+
+  # Sidebar layout with input and output definitions
+  sidebarLayout(
+
+    # Sidebar panel for inputs
+    sidebarPanel(
+
+      # Input: Select the random distribution type
+      selectInput("dist", "Distribution type:",
+                   c("Normal Distribution" = "norm",
+                     "Uniform Distribution" = "unif",
+                     "Log-normal Distribution" = "lnorm",
+                     "Exponential Distribution" = "exp"
+                    )),
+
+      br(),
+
+      # Input: Slider for the number of observations to generate for the random distributtion type
+      sliderInput("n",
+                  "Number of observations:",
+                  value = 1000,
+                  min = 10,
+                  max = 5000)
+
+    ),
+
+
+    # Below is the Main panel to display the outputs
+
+    mainPanel(
+
+      # Output: Tabset w/ plot,and summary of the distribution which you have choosen from the UI
+      tabsetPanel(type = "tabs",
+                  tabPanel("Histogram Plot", plotOutput("plot")),
+                  tabPanel("Distribution Summary", verbatimTextOutput("summary"))
+                     ),
+
+
+      submitButton("Update View", icon("refresh"))
+
+
+    )
+  )
+),
+
+server <- function(input, output) {
+
+  dt <- reactive({
+    dist <- switch(input$dist,
+                   norm = rnorm,
+                   unif = runif,
+                   lnorm = rlnorm,
+                   exp = rexp,
+                   rnorm)
+
+    dist(input$n)
+  })
+
+#the following code generates  the graph based on the reactive selection of the distribution
+
+  output$plot <- renderPlot({
+    dist <- input$dist
+    n <- input$n
+
+    hist(dt(),
+         main = paste("RandomDistribution"," ", dist, "(", n, ")", sep = ""),
+         col = "#75AADB", border = "white")
+  })
+
+  # Generate a summary of the random distribution data, which is based on the selection on the input filter in the UI
+  # Keep in mind that you need to select the desire distribution and click the update view to refresh the value.
+
+  output$summary <- renderPrint({
+    summary(dt())
+  })
+
+
+
+})
+}
+
+
+```
+
+## Explanation of the App
+
+ There are choices of the input for the random distribution, choose the random variables from the drop down box and click submit to see the changes.There are two tabs , one is related to the distribution and another is related to the summary of the distribution which is selected into the distribution drop down box. also you can select the Number of observation and click the update view to see the updated results.
+ 
+
+```{r graph and summary of the tab}
+random_distribution_alg()
+```
+
